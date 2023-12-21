@@ -64,10 +64,10 @@ if ($usertable->num_rows > 0) {
     <form method="POST">
         <div class="row">
             <div class="col-4">
-                <input type="text" class="form-control mt-2 mb-2" name="email" id="email" placeholder="E-mail" value="">
+                <input type="text" class="form-control mt-2 mb-2" name="email" id="email" placeholder="E-mail" value="user@user.com">
             </div>
             <div class="col-4">
-                <input type="password" class="form-control mt-2 mb-2" name="password" id="password" placeholder="пароль" value="">
+                <input type="password" class="form-control mt-2 mb-2" name="password" id="password" placeholder="пароль" value="12345">
             </div>
             <div class="col-4">
                 <button type="submit" class="btn btn-success mt-2 mb-2">Войти</button>
@@ -79,6 +79,12 @@ if ($usertable->num_rows > 0) {
     if (isset($error_message)) {
         echo "<p>$error_message</p>";
     }
+
+    // Устанавливаем cookie с именем 'PHPSESSID' на удаление
+    setcookie('PHPSESSID', '', time() - 3600, '/');
+
+    // Смотрим массив всех записей в cookie
+    var_dump($_COOKIE);
     ?>
 </body>
 </html>
