@@ -9,87 +9,59 @@ session_start();
 $user_authenticated = isset($_SESSION['user_id']) || isset($_COOKIE['user_id']);
 $error_message = '';
 
-// Проверяем существование таблицы 'user_groups', создаем ее, если не существует
-$userGroupssql = "SHOW TABLES LIKE 'user_groups'";
-$userGroupstable = $db_connect->query($userGroupssql);
+// Хешированные пароли
+$adminPassword = password_hash('12345', PASSWORD_DEFAULT);
+$userPassword = password_hash('12345', PASSWORD_DEFAULT);
 
-if ($userGroupstable->num_rows === 0) {
-    $createUserGroupsTableSQL = "
-        CREATE TABLE IF NOT EXISTS `user_groups` (
-            `id` INT(11) NOT NULL AUTO_INCREMENT,
-            `name` VARCHAR(50) DEFAULT NULL,
-            `create` TINYINT(1) DEFAULT NULL,
-            `read` TINYINT(1) DEFAULT NULL,
-            `update` TINYINT(1) DEFAULT NULL,
-            `del` TINYINT(1) DEFAULT NULL,
-            `vote` TINYINT(1) DEFAULT NULL,
-            `download` TINYINT(1) DEFAULT NULL,
-            PRIMARY KEY (`id`)
-        ) ENGINE=INNODB DEFAULT CHARSET=utf8;
-    ";
+// SQL-скрипт для создания таблиц и добавления групп и пользователей
+$setupSQL = "
+    -- Создание таблицы 'user_groups'
+    CREATE TABLE IF NOT EXISTS `user_groups` (
+        `id` INT(11) NOT NULL AUTO_INCREMENT,
+        `name` VARCHAR(50) DEFAULT NULL,
+        `create` TINYINT(1) DEFAULT NULL,
+        `read` TINYINT(1) DEFAULT NULL,
+        `update` TINYINT(1) DEFAULT NULL,
+        `del` TINYINT(1) DEFAULT NULL,
+        `vote` TINYINT(1) DEFAULT NULL,
+        `download` TINYINT(1) DEFAULT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
-    if ($db_connect->query($createUserGroupsTableSQL) === TRUE) {
-        // Таблица 'user_groups' создана успешно
+    -- Добавление групп
+    INSERT INTO `user_groups` (`id`,`name`,`create`,`read`,`update`,`del`,`vote`,`download`)
+    VALUES 
+        (1, 'Администраторы', 1, 1, 1, 1, 1, 1),
+        (2, 'Модераторы', 0, 1, 1, 1, 1, 1),
+        (3, 'Копирайтеры', 0, 1, 1, 0, 1, 1),
+        (4, 'Пользователи', 0, 1, 0, 0, 1, 1),
+        (5, 'Гости', 0, 1, 0, 0, 0, 0);
 
-        // Добавляем пять групп
-        $insertUserGroupsSQL = "
-            INSERT INTO `user_groups` (`id`,`name`,`create`,`read`,`update`,`del`,`vote`,`download`)
-            VALUES 
-                (1, 'Администраторы', 1, 1, 1, 1, 1, 1),
-                (2, 'Модераторы', 0, 1, 1, 1, 1, 1),
-                (3, 'Копирайтеры', 0, 1, 1, 0, 1, 1),
-                (4, 'Пользователи', 0, 1, 0, 0, 1, 1),
-                (5, 'Гости', 0, 1, 0, 0, 0, 0);
-        ";
+    -- Создание таблицы 'users'
+    CREATE TABLE IF NOT EXISTS `users` (
+        `id` INT(11) NOT NULL AUTO_INCREMENT,
+        `email` VARCHAR(50) DEFAULT NULL,
+        `password` varchar(255) DEFAULT NULL,
+        `group_id` INT(11) DEFAULT 4, -- Default group: 'Пользователи'
+        PRIMARY KEY (`id`),
+        FOREIGN KEY (`group_id`) REFERENCES `user_groups` (`id`)
+    ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
-        if ($db_connect->query($insertUserGroupsSQL) !== TRUE) {
-            // Ошибка при добавлении групп
-            $error_message = "Ошибка при добавлении групп: " . $db_connect->error;
+    -- Добавление пользователей
+    INSERT INTO `users` (`email`, `password`, `group_id`) VALUES 
+        ('admin@admin.com', '$adminPassword', 1),
+        ('user@user.com', '$userPassword', 4);
+";
+
+// Разделение запросов и их выполнение
+$queries = explode(';', $setupSQL);
+foreach ($queries as $query) {
+    if (!empty(trim($query))) {
+        if (!$db_connect->query($query)) {
+            // Ошибка при выполнении запроса
+            $error_message = "Ошибка при выполнении запроса: " . $db_connect->error;
+            break;
         }
-    } else {
-        // Ошибка при создании таблицы 'user_groups'
-        $error_message = "Ошибка при создании таблицы 'user_groups': " . $db_connect->error;
-    }
-}
-
-// Проверяем существование таблицы 'users', создаем ее, если не существует
-$usersql = "SHOW TABLES LIKE 'users'";
-$usertable = $db_connect->query($usersql);
-
-if ($usertable->num_rows === 0) {
-    $createTableSQL = "
-        CREATE TABLE IF NOT EXISTS `users` (
-            `id` INT(11) NOT NULL AUTO_INCREMENT,
-            `email` VARCHAR(50) DEFAULT NULL,
-            `password` varchar(255) DEFAULT NULL,
-            `group_id` INT(11) DEFAULT 4, -- Default group: 'Пользователи'
-            PRIMARY KEY (`id`),
-            FOREIGN KEY (`group_id`) REFERENCES `user_groups` (`id`)
-        ) ENGINE=INNODB DEFAULT CHARSET=utf8;
-    ";
-
-    if ($db_connect->query($createTableSQL) === TRUE) {
-        // Таблица 'users' создана успешно
-
-        // Добавляем двух пользователей
-        $adminEmail = 'admin@admin.com';
-        $adminPassword = password_hash('12345', PASSWORD_DEFAULT);
-        $adminGroupId = 1; // 'Администраторы'
-
-        $userEmail = 'user@user.com';
-        $userPassword = password_hash('user123', PASSWORD_DEFAULT);
-        $userGroupId = 4; // 'Пользователи'
-
-        $insertAdminSQL = "INSERT INTO `users` (`email`, `password`, `group_id`) VALUES ('$adminEmail', '$adminPassword', $adminGroupId)";
-        $insertUserSQL = "INSERT INTO `users` (`email`, `password`, `group_id`) VALUES ('$userEmail', '$userPassword', $userGroupId)";
-
-        if ($db_connect->query($insertAdminSQL) !== TRUE || $db_connect->query($insertUserSQL) !== TRUE) {
-            // Ошибка при добавлении пользователей
-            $error_message = "Ошибка при добавлении пользователей: " . $db_connect->error;
-        }
-    } else {
-        // Ошибка при создании таблицы 'users'
-        $error_message = "Ошибка при создании таблицы 'users': " . $db_connect->error;
     }
 }
 
