@@ -77,17 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_stmt_bind_param($stmt, "s", $email);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
-
         if ($result && mysqli_num_rows($result) > 0) {
             $user = mysqli_fetch_assoc($result);
-
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_group'] = $user['group_name'];
                 setcookie('user_id', $user['id'], time() + 3600 * 24 * 7);
-
-                header('Location: panel.php');
+                // открываем профиль
+                header('Location: index.php');
                 exit();
             } else {
                 $error_message = "Неверный email или пароль";
@@ -98,9 +96,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $error_message = "Ошибка подготовки запроса: " . mysqli_error($db_connect);
     }
-
     if (isset($error_message)) {
         $smarty->assign('error_message', $error_message);
+    }
+}
+
+// После успешной аутентификации
+if ($user_authenticated) {
+    // Получаем группу пользователя
+    $query = "SELECT user_groups.name AS group_name FROM users LEFT JOIN user_groups ON users.group_id = user_groups.id WHERE users.id = ? LIMIT 1";
+    $stmt = mysqli_prepare($db_connect, $query);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "i", $_SESSION['user_id']);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        if ($result && mysqli_num_rows($result) > 0) {
+            $user = mysqli_fetch_assoc($result);
+            // Присваиваем переменные Smarty
+            $smarty->assign('user_email', $_SESSION['user_email']);
+            $smarty->assign('user_group', $user['group_name']);
+        }
     }
 }
 

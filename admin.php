@@ -4,14 +4,6 @@ require_once('libs/Smarty.class.php');
 
 $smarty = new Smarty();
 session_start();
-// if (session_status() == PHP_SESSION_ACTIVE) {
-//     echo 'Текущая сессия активна.<br>';
-//     echo 'ID сессии: ' . session_id() . '<br>';
-//     echo 'Данные сессии:<br>';
-//     print_r($_SESSION);
-// } else {
-//     echo 'Сессия не активна.';
-// }
 
 // Проверяем аутентификацию пользователя
 if (!isset($_SESSION['user_id']) && !isset($_COOKIE['user_id'])) {
@@ -31,12 +23,8 @@ if ($stmt) {
     if ($result && mysqli_num_rows($result) > 0) {
         $user = mysqli_fetch_assoc($result);
         $smarty->assign('user_email', htmlspecialchars($_SESSION['user_email']));
+        $smarty->assign('user_group_id', $user['group_id']);  // Убедитесь, что эта строка присутствует
         $smarty->assign('user_group', $user['group_name']);
-
-        if ($user['group_name'] === 'Администраторы') {
-            // Контент доступный только администратору
-            $smarty->assign('admin_content', 'Этот контент доступен только администратору.');
-        }
     } else {
         // Ошибка при получении данных пользователя
         $smarty->assign('error_message', "Ошибка при получении данных пользователя");
@@ -46,5 +34,5 @@ if ($stmt) {
     $smarty->assign('error_message', "Ошибка подготовки запроса: " . mysqli_error($db_connect));
 }
 
-$smarty->display('panel.tpl');
+$smarty->display('admin.tpl');
 ?>
