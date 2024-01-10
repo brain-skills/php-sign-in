@@ -1,35 +1,27 @@
 <?php
+require_once('config.php');
+require_once('libs/Smarty.class.php'); // Adjust the path based on your setup
+
+$smarty = new Smarty();
+
 session_start();
+// if (session_status() == PHP_SESSION_ACTIVE) {
+//     echo 'Текущая сессия активна.<br>';
+//     echo 'ID сессии: ' . session_id() . '<br>';
+//     echo 'Данные сессии:<br>';
+//     print_r($_SESSION);
+// } else {
+//     echo 'Сессия не активна.';
+// }
 
-// Устанавливаем cookie с именем 'PHPSESSID' на удаление
-setcookie('PHPSESSID', '', time() - 3600, '/');
-
-// Проверяем, что пользователь аутентифицирован
 if (!isset($_SESSION['user_id']) && !isset($_COOKIE['user_id'])) {
     header('Location: index.php');
     exit();
 }
 
-// Если пользователь аутентифицирован через сессию
-if (isset($_SESSION['user_id'])) {
-    echo 'Success! Добро пожаловать, ' . $_SESSION['user_email'];
-}
-// Если пользователь аутентифицирован через cookie
-elseif (isset($_COOKIE['user_id'])) {
-    require_once('config.php');
-    $user_id = $_COOKIE['user_id'];
-    $query = "SELECT * FROM users WHERE id = $user_id";
-    $result = mysqli_query($db_connect, $query);
-    if ($result && mysqli_num_rows($result) > 0) {
-        $user = mysqli_fetch_assoc($result);
-        // Сохраняем информацию о пользователе в сессии
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_email'] = $user['email'];
-        echo 'Success! Добро пожаловать, ' . $_SESSION['user_email'];
-    } else {
-        // Проблема с cookie, перенаправляем на страницу входа
-        header('Location: /');
-        exit();
-    }
-}
+// Assign variables for Smarty template
+$smarty->assign('user_email', htmlspecialchars($_SESSION['user_email']));
+
+// Display Smarty template
+$smarty->display('panel.tpl'); // Create panel.tpl with your HTML content
 ?>
