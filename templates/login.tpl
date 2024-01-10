@@ -7,6 +7,7 @@
 </head>
 <body>
     {if $user_authenticated == false}
+        <h3>Форма авторизации</h3>
         <form method="POST" action="index.php">
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>

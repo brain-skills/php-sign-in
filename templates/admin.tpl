@@ -11,17 +11,14 @@
         <p>Вы вошли как {$user_group}.</p>
         <a href="logout.php">Выйти</a>
     {else}
-        <p>Уважаемый {$user_email}, у вас нет доступа к административному разделу!</p>
-        <p>Вы вошли как {$user_group}.</p>
+        <h3>Вход в Панель управления</h3>
+        <!-- Форма для незарегистрированных пользователей -->
         <form method="POST" action="index.php">
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>
-
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
-
             <button type="submit">Войти</button>
-            
             {if isset($error_message)}
                 <p>{$error_message}</p>
             {/if}

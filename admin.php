@@ -6,10 +6,10 @@ $smarty = new Smarty();
 session_start();
 
 // Проверяем аутентификацию пользователя
-if (!isset($_SESSION['user_id']) && !isset($_COOKIE['user_id'])) {
-    header('Location: index.php');
-    exit();
-}
+// if (!isset($_SESSION['user_id']) && !isset($_COOKIE['user_id'])) {
+//     header('Location: index.php');
+//     exit();
+// }
 
 // Запрос к базе данных для получения пользователя по email
 $query = "SELECT users.*, user_groups.name AS group_name FROM users LEFT JOIN user_groups ON users.group_id = user_groups.id WHERE email = ? LIMIT 1";
@@ -25,9 +25,6 @@ if ($stmt) {
         $smarty->assign('user_email', htmlspecialchars($_SESSION['user_email']));
         $smarty->assign('user_group_id', $user['group_id']);  // Убедитесь, что эта строка присутствует
         $smarty->assign('user_group', $user['group_name']);
-    } else {
-        // Ошибка при получении данных пользователя
-        $smarty->assign('error_message', "Ошибка при получении данных пользователя");
     }
 } else {
     // Ошибка подготовки запроса
