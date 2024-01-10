@@ -10,8 +10,10 @@ $user_authenticated = isset($_SESSION['user_id']) || isset($_COOKIE['user_id']);
 $error_message = '';
 
 // Хешированные пароли
-$adminPassword = password_hash('12345', PASSWORD_DEFAULT);
-$userPassword = password_hash('12345', PASSWORD_DEFAULT);
+$adminPass = password_hash('12345', PASSWORD_DEFAULT);
+$moderPass = password_hash('12345', PASSWORD_DEFAULT);
+$writerPass = password_hash('12345', PASSWORD_DEFAULT);
+$userPass = password_hash('12345', PASSWORD_DEFAULT);
 
 // SQL-скрипт для создания таблиц и добавления групп и пользователей
 $setupSQL = "
@@ -49,8 +51,10 @@ $setupSQL = "
 
     -- Добавление пользователей
     INSERT INTO `users` (`email`, `password`, `group_id`) VALUES 
-        ('admin@admin.com', '$adminPassword', 1),
-        ('user@user.com', '$userPassword', 4);
+        ('admin@admin.com', '$adminPass', 1),
+        ('moder@moder.com', '$moderPass', 2),
+        ('writer@writer.com', '$writerPass', 3),
+        ('user@user.com', '$userPass', 4);
 ";
 
 // Разделение запросов и их выполнение

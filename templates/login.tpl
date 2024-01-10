@@ -11,35 +11,35 @@
         <form method="POST" action="index.php">
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>
-
+            <br>
+            <br>
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
-
+            <br>
+            <br>
             <button type="submit">Войти</button>
-            
             {if isset($error_message)}
                 <p>{$error_message}</p>
             {/if}
         </form>
     {else}
-        <p>Успешно! Добро пожаловать, {$user_email}</p>
-        <p>Вы вошли как {$user_group}.</p>
+        <p>Успешно! Добро пожаловать, <b>{$user_email}</b></p>
+        <p>Вы вошли как <b>{$user_group}</b>.</p>
         {if $user_group eq 'Администраторы'}
-            <p><a href="admin.php">Панель управления</a></p>
-            <p>Дополнительный контент для администраторов.</p>
+            <p>Контент для администраторов.</p>
         {elseif $user_group eq 'Модераторы'}
-            <p>Дополнительный контент для модераторов.</p>
+            <p>Контент для модераторов.</p>
         {elseif $user_group eq 'Копирайтеры'}
-            <p>Дополнительный контент для копирайтеров.</p>
+            <p>Контент для копирайтеров.</p>
         {elseif $user_group eq 'Пользователи'}
-            <p>Дополнительный контент для пользователей.</p>
+            <p>Контент для пользователей.</p>
         {elseif $user_group eq 'Гости'}
-            <p>Дополнительный контент для гостей.</p>
+            <p>Контент для гостей.</p>
         {else}
             <p>Неизвестная группа пользователей.</p>
         {/if}
     
-        <a href="logout.php">Выйти</a>
+        <a href="logout.php">Выйти</a> - <a href="admin.php">Панель управления</a>
     {/if}
 </body>
 </html>
